@@ -1,5 +1,5 @@
-{% for subObj in objectives %}
+{% for obj, slug in objs  %}
 
-- [{{ subObj }}]({{ subObj }}.md)
+- [{{ obj }}]({{ slug }}.md)
 
 {% endfor %}
