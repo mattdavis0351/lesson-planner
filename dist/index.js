@@ -2127,12 +2127,16 @@ const slugify = __webpack_require__(532);
 
 const { parseCourseConfigFile } = __webpack_require__(34);
 const { populateTemplateFiles } = __webpack_require__(35);
+
+console.log("creating template dir variable");
 const templateDir = __webpack_require__.ab + "templates";
+console.log("getting input variables");
 const GITHUB_TOKEN = core.getInput("github-token");
 const octokit = github.getOctokit(GITHUB_TOKEN);
 const ctx = github.context;
 
 async function run() {
+  console.log("inside run func");
   try {
     // Read course.yml
     // certificationName = string, templateVersion = number, objectives = array

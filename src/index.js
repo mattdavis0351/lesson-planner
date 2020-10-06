@@ -5,17 +5,21 @@ const slugify = require("slugify");
 
 const { parseCourseConfigFile } = require("./lib/parser");
 const { populateTemplateFiles } = require("./lib/templates");
+
+console.log("creating template dir variable");
 const templateDir = path.resolve(
   //   path.dirname(__dirname),
   "src",
   "lib",
   "templates"
 );
+console.log("getting input variables");
 const GITHUB_TOKEN = core.getInput("github-token");
 const octokit = github.getOctokit(GITHUB_TOKEN);
 const ctx = github.context;
 
 async function run() {
+  console.log("inside run func");
   try {
     // Read course.yml
     // certificationName = string, templateVersion = number, objectives = array
