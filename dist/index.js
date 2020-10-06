@@ -169,7 +169,7 @@ const yaml = __webpack_require__(354);
 async function parseCourseConfigFile() {
   try {
     let fileContents = await fs.promises.readFile(
-      __webpack_require__.ab + "lesson-planner/" + process.env.GITHUB_WORKSPACE + '/course.yml',
+      `${process.env.GITHUB_WORKSPACE}/course.yml`,
       "utf8"
     );
     let data = yaml.safeLoad(fileContents);

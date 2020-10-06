@@ -5,7 +5,7 @@ const yaml = require("js-yaml");
 async function parseCourseConfigFile() {
   try {
     let fileContents = await fs.promises.readFile(
-      path.resolve(process.env.GITHUB_WORKSPACE, "course.yml"),
+      `${process.env.GITHUB_WORKSPACE}/course.yml`,
       "utf8"
     );
     let data = yaml.safeLoad(fileContents);
