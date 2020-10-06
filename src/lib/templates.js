@@ -5,7 +5,7 @@ const nj = require("nunjucks");
 async function populateTemplateFiles(
   certificationName,
   templateVersion,
-  objectives,
+  objs,
   templateDir
 ) {
   let filesToWrite = {};
@@ -20,7 +20,7 @@ async function populateTemplateFiles(
       path.resolve(templateDir, `v${templateVersion}`, templateFiles[i]),
       {
         certificationName,
-        objectives,
+        objs,
       }
     );
 
@@ -30,17 +30,4 @@ async function populateTemplateFiles(
   return filesToWrite;
 }
 
-async function doesLessonPlanExist(filepath) {
-  try {
-    await fs.promises.access(filepath, fs.constants.F_OK);
-    return true;
-  } catch (error) {
-    if (error.code === "ENOENT") {
-      return false;
-    } else {
-      throw error;
-    }
-  }
-}
-
-module.exports = { populateTemplateFiles, doesLessonPlanExist };
+module.exports = { populateTemplateFiles };

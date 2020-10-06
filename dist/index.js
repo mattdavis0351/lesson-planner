@@ -195,7 +195,7 @@ const nj = __webpack_require__(603);
 async function populateTemplateFiles(
   certificationName,
   templateVersion,
-  objectives,
+  objs,
   templateDir
 ) {
   let filesToWrite = {};
@@ -210,7 +210,7 @@ async function populateTemplateFiles(
       path.resolve(templateDir, `v${templateVersion}`, templateFiles[i]),
       {
         certificationName,
-        objectives,
+        objs,
       }
     );
 
@@ -220,20 +220,7 @@ async function populateTemplateFiles(
   return filesToWrite;
 }
 
-async function doesLessonPlanExist(filepath) {
-  try {
-    await fs.promises.access(filepath, fs.constants.F_OK);
-    return true;
-  } catch (error) {
-    if (error.code === "ENOENT") {
-      return false;
-    } else {
-      throw error;
-    }
-  }
-}
-
-module.exports = { populateTemplateFiles, doesLessonPlanExist };
+module.exports = { populateTemplateFiles };
 
 
 /***/ }),
@@ -247,7 +234,7 @@ module.exports = { populateTemplateFiles, doesLessonPlanExist };
 const path = __webpack_require__(622);
 const scan = __webpack_require__(319);
 const parse = __webpack_require__(268);
-const utils = __webpack_require__(532);
+const utils = __webpack_require__(678);
 const constants = __webpack_require__(930);
 const isObject = val => val && typeof val === 'object' && !Array.isArray(val);
 
@@ -2136,12 +2123,10 @@ module.exports = parse;
 const path = __webpack_require__(622);
 const github = __webpack_require__(462);
 const core = __webpack_require__(310);
+const slugify = __webpack_require__(532);
 
 const { parseCourseConfigFile } = __webpack_require__(34);
-const {
-  populateTemplateFiles,
-  doesLessonPlanExist,
-} = __webpack_require__(35);
+const { populateTemplateFiles } = __webpack_require__(35);
 const templateDir = __webpack_require__.ab + "templates";
 const GITHUB_TOKEN = core.getInput("github-token");
 const octokit = github.getOctokit(GITHUB_TOKEN);
@@ -2149,19 +2134,30 @@ const ctx = github.context;
 
 async function run() {
   try {
+    // Read course.yml
+    // certificationName = string, templateVersion = number, objectives = array
     const {
       certificationName,
       templateVersion,
       objectives,
     } = await parseCourseConfigFile();
 
+    // Create new object contianing the objective names as keys and the slugified version as values
+    let objs = {};
+
+    for (let i = 0; i < objectives.length; i++) {
+      let slug = slugify(objectives[i]);
+
+      objs[objectives[i]] = slug;
+    }
+
+    // Populate templates with data from course.yml and return an object
     const fileContentsToWrite = await populateTemplateFiles(
       certificationName,
       templateVersion,
-      objectives,
+      objs,
       __webpack_require__.ab + "templates"
     );
-
     // fileContentsToWrite has these keys
     //     'nojekyll',
     //     'READMEmd',
@@ -2171,33 +2167,73 @@ async function run() {
     //     'lesson-planmd',
     //     'lesson-plannercss'
 
-    const jekyllRes = await octokit.repos.createOrUpdateFileContents({
+    // Use the GitHub API to get the directories and files in the root of the repo
+    const docsFolder = await octokit.repos.getContent({
       owner: ctx.repo.owner,
       repo: ctx.repo.repo,
-      path: "docs/.nojekyll",
-      message: "initial template setup",
-      content: Buffer.from(fileContentsToWrite["nojekyll"]).toString("base64"),
       branch: ctx.ref,
     });
 
-    const glossaryRes = await octokit.repos.createOrUpdateFileContents({
-      owner: ctx.repo.owner,
-      repo: ctx.repo.repo,
-      path: "docs/_glossary.md",
-      message: "initial template setup",
-      content: Buffer.from(fileContentsToWrite["_glossarymd"]).toString(
-        "base64"
-      ),
-      branch: ctx.ref,
-    });
-    const readmeRes = await octokit.repos.createOrUpdateFileContents({
-      owner: ctx.repo.owner,
-      repo: ctx.repo.repo,
-      path: "docs/README.md",
-      message: "initial template setup",
-      content: Buffer.from(fileContentsToWrite["READMEmd"]).toString("base64"),
-      branch: ctx.ref,
-    });
+    // Check for docs foler, if it does NOT exist, create it and populate it with the initial
+    // template files needed for Docsify
+    if (!docsFolder.data.some((dir) => dir.path === "docs")) {
+      const jekyllRes = await octokit.repos.createOrUpdateFileContents({
+        owner: ctx.repo.owner,
+        repo: ctx.repo.repo,
+        path: "docs/.nojekyll",
+        message: "initial template setup",
+        content: Buffer.from(fileContentsToWrite["nojekyll"]).toString(
+          "base64"
+        ),
+        branch: ctx.ref,
+      });
+
+      const glossaryRes = await octokit.repos.createOrUpdateFileContents({
+        owner: ctx.repo.owner,
+        repo: ctx.repo.repo,
+        path: "docs/_glossary.md",
+        message: "initial template setup",
+        content: Buffer.from(fileContentsToWrite["_glossarymd"]).toString(
+          "base64"
+        ),
+        branch: ctx.ref,
+      });
+
+      const readmeRes = await octokit.repos.createOrUpdateFileContents({
+        owner: ctx.repo.owner,
+        repo: ctx.repo.repo,
+        path: "docs/README.md",
+        message: "initial template setup",
+        content: Buffer.from(fileContentsToWrite["READMEmd"]).toString(
+          "base64"
+        ),
+        branch: ctx.ref,
+      });
+      const indexRes = await octokit.repos.createOrUpdateFileContents({
+        owner: ctx.repo.owner,
+        repo: ctx.repo.repo,
+        path: "docs/index.html",
+        message: "initial template setup",
+        content: Buffer.from(fileContentsToWrite["indexhtml"]).toString(
+          "base64"
+        ),
+        branch: ctx.ref,
+      });
+
+      const cssRes = await octokit.repos.createOrUpdateFileContents({
+        owner: ctx.repo.owner,
+        repo: ctx.repo.repo,
+        path: "docs/lesson-planner.css",
+        message: "initial template setup",
+        content: Buffer.from(fileContentsToWrite["lesson-plannercss"]).toString(
+          "base64"
+        ),
+        branch: ctx.ref,
+      });
+    }
+
+    // Always recreate the sidebar, this will allow easy updates when objectives
+    // Are added to thr course.yml
     const sidebarRes = await octokit.repos.createOrUpdateFileContents({
       owner: ctx.repo.owner,
       repo: ctx.repo.repo,
@@ -2209,35 +2245,28 @@ async function run() {
       branch: ctx.ref,
     });
 
-    const indexRes = await octokit.repos.createOrUpdateFileContents({
-      owner: ctx.repo.owner,
-      repo: ctx.repo.repo,
-      path: "docs/index.html",
-      message: "initial template setup",
-      content: Buffer.from(fileContentsToWrite["indexhtml"]).toString("base64"),
-      branch: ctx.ref,
-    });
-
-    const cssRes = await octokit.repos.createOrUpdateFileContents({
-      owner: ctx.repo.owner,
-      repo: ctx.repo.repo,
-      path: "docs/lesson-planner.css",
-      message: "initial template setup",
-      content: Buffer.from(fileContentsToWrite["lesson-plannercss"]).toString(
-        "base64"
-      ),
-      branch: ctx.ref,
-    });
-
+    // For each objective we need to see if it already exists in the repo to
+    // Prevent overwriting a lesson plan with the template
     for (let i = 0; i < objectives.length; i++) {
-      const alreadyExists = await doesLessonPlanExist(
-        path.resolve(`docs/${objectives[i]}.md`)
-      );
-      if (!alreadyExists) {
+      //   Make GitHub API call to get the files present in the docs folder
+      const lessonPlans = await octokit.repos.getContent({
+        owner: ctx.repo.owner,
+        repo: ctx.repo.repo,
+        branch: ctx.ref,
+        path: "docs",
+      });
+
+      // Check to see if a lesson plan with the current name already exists in the docs folder
+      // If it does not exist, then create one with the template on the current branch
+      if (
+        !lessonPlans.data.some(
+          (lessonPlan) => lessonPlan.name === `${slugify(objectives[i])}.md`
+        )
+      ) {
         const res = await octokit.repos.createOrUpdateFileContents({
           owner: ctx.repo.owner,
           repo: ctx.repo.repo,
-          path: `docs/${objectives[i]}.md`,
+          path: `docs/${slugify(objectives[i])}.md`,
           message: "initial template setup",
           content: Buffer.from(fileContentsToWrite["lesson-planmd"]).toString(
             "base64"
@@ -2245,6 +2274,7 @@ async function run() {
           branch: ctx.ref,
         });
       } else {
+        // If it does exist then continue through the remaining files
         continue;
       }
     }
@@ -4105,7 +4135,7 @@ exports.constants = events;
 
 
 const constants = __webpack_require__(930);
-const utils = __webpack_require__(532);
+const utils = __webpack_require__(678);
 
 /**
  * Constants
@@ -5567,7 +5597,7 @@ module.exports = __webpack_require__(40);
 "use strict";
 
 
-const utils = __webpack_require__(532);
+const utils = __webpack_require__(678);
 const {
   CHAR_ASTERISK,             /* * */
   CHAR_AT,                   /* @ */
@@ -12258,73 +12288,69 @@ module.exports = readdirp;
 /***/ }),
 
 /***/ 532:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
+/***/ (function(module) {
 
 
-const path = __webpack_require__(622);
-const win32 = process.platform === 'win32';
-const {
-  REGEX_BACKSLASH,
-  REGEX_REMOVE_BACKSLASH,
-  REGEX_SPECIAL_CHARS,
-  REGEX_SPECIAL_CHARS_GLOBAL
-} = __webpack_require__(930);
-
-exports.isObject = val => val !== null && typeof val === 'object' && !Array.isArray(val);
-exports.hasRegexChars = str => REGEX_SPECIAL_CHARS.test(str);
-exports.isRegexChar = str => str.length === 1 && exports.hasRegexChars(str);
-exports.escapeRegex = str => str.replace(REGEX_SPECIAL_CHARS_GLOBAL, '\\$1');
-exports.toPosixSlashes = str => str.replace(REGEX_BACKSLASH, '/');
-
-exports.removeBackslashes = str => {
-  return str.replace(REGEX_REMOVE_BACKSLASH, match => {
-    return match === '\\' ? '' : match;
-  });
-};
-
-exports.supportsLookbehinds = () => {
-  const segs = process.version.slice(1).split('.').map(Number);
-  if (segs.length === 3 && segs[0] >= 9 || (segs[0] === 8 && segs[1] >= 10)) {
-    return true;
+;(function (name, root, factory) {
+  if (true) {
+    module.exports = factory()
+    module.exports['default'] = factory()
   }
-  return false;
-};
+  /* istanbul ignore next */
+  else {}
+}('slugify', this, function () {
+  var charMap = JSON.parse('{"$":"dollar","%":"percent","&":"and","<":"less",">":"greater","|":"or","¢":"cent","£":"pound","¤":"currency","¥":"yen","©":"(c)","ª":"a","®":"(r)","º":"o","À":"A","Á":"A","Â":"A","Ã":"A","Ä":"A","Å":"A","Æ":"AE","Ç":"C","È":"E","É":"E","Ê":"E","Ë":"E","Ì":"I","Í":"I","Î":"I","Ï":"I","Ð":"D","Ñ":"N","Ò":"O","Ó":"O","Ô":"O","Õ":"O","Ö":"O","Ø":"O","Ù":"U","Ú":"U","Û":"U","Ü":"U","Ý":"Y","Þ":"TH","ß":"ss","à":"a","á":"a","â":"a","ã":"a","ä":"a","å":"a","æ":"ae","ç":"c","è":"e","é":"e","ê":"e","ë":"e","ì":"i","í":"i","î":"i","ï":"i","ð":"d","ñ":"n","ò":"o","ó":"o","ô":"o","õ":"o","ö":"o","ø":"o","ù":"u","ú":"u","û":"u","ü":"u","ý":"y","þ":"th","ÿ":"y","Ā":"A","ā":"a","Ă":"A","ă":"a","Ą":"A","ą":"a","Ć":"C","ć":"c","Č":"C","č":"c","Ď":"D","ď":"d","Đ":"DJ","đ":"dj","Ē":"E","ē":"e","Ė":"E","ė":"e","Ę":"e","ę":"e","Ě":"E","ě":"e","Ğ":"G","ğ":"g","Ģ":"G","ģ":"g","Ĩ":"I","ĩ":"i","Ī":"i","ī":"i","Į":"I","į":"i","İ":"I","ı":"i","Ķ":"k","ķ":"k","Ļ":"L","ļ":"l","Ľ":"L","ľ":"l","Ł":"L","ł":"l","Ń":"N","ń":"n","Ņ":"N","ņ":"n","Ň":"N","ň":"n","Ō":"O","ō":"o","Ő":"O","ő":"o","Œ":"OE","œ":"oe","Ŕ":"R","ŕ":"r","Ř":"R","ř":"r","Ś":"S","ś":"s","Ş":"S","ş":"s","Š":"S","š":"s","Ţ":"T","ţ":"t","Ť":"T","ť":"t","Ũ":"U","ũ":"u","Ū":"u","ū":"u","Ů":"U","ů":"u","Ű":"U","ű":"u","Ų":"U","ų":"u","Ŵ":"W","ŵ":"w","Ŷ":"Y","ŷ":"y","Ÿ":"Y","Ź":"Z","ź":"z","Ż":"Z","ż":"z","Ž":"Z","ž":"z","ƒ":"f","Ơ":"O","ơ":"o","Ư":"U","ư":"u","ǈ":"LJ","ǉ":"lj","ǋ":"NJ","ǌ":"nj","Ș":"S","ș":"s","Ț":"T","ț":"t","˚":"o","Ά":"A","Έ":"E","Ή":"H","Ί":"I","Ό":"O","Ύ":"Y","Ώ":"W","ΐ":"i","Α":"A","Β":"B","Γ":"G","Δ":"D","Ε":"E","Ζ":"Z","Η":"H","Θ":"8","Ι":"I","Κ":"K","Λ":"L","Μ":"M","Ν":"N","Ξ":"3","Ο":"O","Π":"P","Ρ":"R","Σ":"S","Τ":"T","Υ":"Y","Φ":"F","Χ":"X","Ψ":"PS","Ω":"W","Ϊ":"I","Ϋ":"Y","ά":"a","έ":"e","ή":"h","ί":"i","ΰ":"y","α":"a","β":"b","γ":"g","δ":"d","ε":"e","ζ":"z","η":"h","θ":"8","ι":"i","κ":"k","λ":"l","μ":"m","ν":"n","ξ":"3","ο":"o","π":"p","ρ":"r","ς":"s","σ":"s","τ":"t","υ":"y","φ":"f","χ":"x","ψ":"ps","ω":"w","ϊ":"i","ϋ":"y","ό":"o","ύ":"y","ώ":"w","Ё":"Yo","Ђ":"DJ","Є":"Ye","І":"I","Ї":"Yi","Ј":"J","Љ":"LJ","Њ":"NJ","Ћ":"C","Џ":"DZ","А":"A","Б":"B","В":"V","Г":"G","Д":"D","Е":"E","Ж":"Zh","З":"Z","И":"I","Й":"J","К":"K","Л":"L","М":"M","Н":"N","О":"O","П":"P","Р":"R","С":"S","Т":"T","У":"U","Ф":"F","Х":"H","Ц":"C","Ч":"Ch","Ш":"Sh","Щ":"Sh","Ъ":"U","Ы":"Y","Ь":"","Э":"E","Ю":"Yu","Я":"Ya","а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ж":"zh","з":"z","и":"i","й":"j","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"h","ц":"c","ч":"ch","ш":"sh","щ":"sh","ъ":"u","ы":"y","ь":"","э":"e","ю":"yu","я":"ya","ё":"yo","ђ":"dj","є":"ye","і":"i","ї":"yi","ј":"j","љ":"lj","њ":"nj","ћ":"c","ѝ":"u","џ":"dz","Ґ":"G","ґ":"g","Ғ":"GH","ғ":"gh","Қ":"KH","қ":"kh","Ң":"NG","ң":"ng","Ү":"UE","ү":"ue","Ұ":"U","ұ":"u","Һ":"H","һ":"h","Ә":"AE","ә":"ae","Ө":"OE","ө":"oe","฿":"baht","ა":"a","ბ":"b","გ":"g","დ":"d","ე":"e","ვ":"v","ზ":"z","თ":"t","ი":"i","კ":"k","ლ":"l","მ":"m","ნ":"n","ო":"o","პ":"p","ჟ":"zh","რ":"r","ს":"s","ტ":"t","უ":"u","ფ":"f","ქ":"k","ღ":"gh","ყ":"q","შ":"sh","ჩ":"ch","ც":"ts","ძ":"dz","წ":"ts","ჭ":"ch","ხ":"kh","ჯ":"j","ჰ":"h","Ẁ":"W","ẁ":"w","Ẃ":"W","ẃ":"w","Ẅ":"W","ẅ":"w","ẞ":"SS","Ạ":"A","ạ":"a","Ả":"A","ả":"a","Ấ":"A","ấ":"a","Ầ":"A","ầ":"a","Ẩ":"A","ẩ":"a","Ẫ":"A","ẫ":"a","Ậ":"A","ậ":"a","Ắ":"A","ắ":"a","Ằ":"A","ằ":"a","Ẳ":"A","ẳ":"a","Ẵ":"A","ẵ":"a","Ặ":"A","ặ":"a","Ẹ":"E","ẹ":"e","Ẻ":"E","ẻ":"e","Ẽ":"E","ẽ":"e","Ế":"E","ế":"e","Ề":"E","ề":"e","Ể":"E","ể":"e","Ễ":"E","ễ":"e","Ệ":"E","ệ":"e","Ỉ":"I","ỉ":"i","Ị":"I","ị":"i","Ọ":"O","ọ":"o","Ỏ":"O","ỏ":"o","Ố":"O","ố":"o","Ồ":"O","ồ":"o","Ổ":"O","ổ":"o","Ỗ":"O","ỗ":"o","Ộ":"O","ộ":"o","Ớ":"O","ớ":"o","Ờ":"O","ờ":"o","Ở":"O","ở":"o","Ỡ":"O","ỡ":"o","Ợ":"O","ợ":"o","Ụ":"U","ụ":"u","Ủ":"U","ủ":"u","Ứ":"U","ứ":"u","Ừ":"U","ừ":"u","Ử":"U","ử":"u","Ữ":"U","ữ":"u","Ự":"U","ự":"u","Ỳ":"Y","ỳ":"y","Ỵ":"Y","ỵ":"y","Ỷ":"Y","ỷ":"y","Ỹ":"Y","ỹ":"y","‘":"\'","’":"\'","“":"\\\"","”":"\\\"","†":"+","•":"*","…":"...","₠":"ecu","₢":"cruzeiro","₣":"french franc","₤":"lira","₥":"mill","₦":"naira","₧":"peseta","₨":"rupee","₩":"won","₪":"new shequel","₫":"dong","€":"euro","₭":"kip","₮":"tugrik","₯":"drachma","₰":"penny","₱":"peso","₲":"guarani","₳":"austral","₴":"hryvnia","₵":"cedi","₸":"kazakhstani tenge","₹":"indian rupee","₺":"turkish lira","₽":"russian ruble","₿":"bitcoin","℠":"sm","™":"tm","∂":"d","∆":"delta","∑":"sum","∞":"infinity","♥":"love","元":"yuan","円":"yen","﷼":"rial"}')
+  var locales = JSON.parse('{"de":{"Ä":"AE","ä":"ae","Ö":"OE","ö":"oe","Ü":"UE","ü":"ue"},"vi":{"Đ":"D","đ":"d"}}')
 
-exports.isWindows = options => {
-  if (options && typeof options.windows === 'boolean') {
-    return options.windows;
+  function replace (string, options) {
+    if (typeof string !== 'string') {
+      throw new Error('slugify: string argument expected')
+    }
+
+    options = (typeof options === 'string')
+      ? {replacement: options}
+      : options || {}
+
+    var locale = locales[options.locale] || {}
+
+    var replacement = options.replacement === undefined ? '-' : options.replacement
+
+    var slug = string.split('')
+      // replace characters based on charMap
+      .reduce(function (result, ch) {
+        return result + (locale[ch] || charMap[ch] || ch)
+          // remove not allowed characters
+          .replace(options.remove || /[^\w\s$*_+~.()'"!\-:@]+/g, '')
+      }, '')
+      // trim leading/trailing spaces
+      .trim()
+      // convert spaces to replacement character
+      // also remove duplicates of the replacement character
+      .replace(new RegExp('[\\s' + replacement + ']+', 'g'), replacement)
+
+    if (options.lower) {
+      slug = slug.toLowerCase()
+    }
+
+    if (options.strict) {
+      // remove anything besides letters, numbers, and the replacement char
+      slug = slug
+        .replace(new RegExp('[^a-zA-Z0-9' + replacement + ']', 'g'), '')
+        // remove duplicates of the replacement character
+        .replace(new RegExp('[\\s' + replacement + ']+', 'g'), replacement)
+    }
+
+    return slug
   }
-  return win32 === true || path.sep === '\\';
-};
 
-exports.escapeLast = (input, char, lastIdx) => {
-  const idx = input.lastIndexOf(char, lastIdx);
-  if (idx === -1) return input;
-  if (input[idx - 1] === '\\') return exports.escapeLast(input, char, idx - 1);
-  return `${input.slice(0, idx)}\\${input.slice(idx)}`;
-};
-
-exports.removePrefix = (input, state = {}) => {
-  let output = input;
-  if (output.startsWith('./')) {
-    output = output.slice(2);
-    state.prefix = './';
+  replace.extend = function (customMap) {
+    for (var key in customMap) {
+      charMap[key] = customMap[key]
+    }
   }
-  return output;
-};
 
-exports.wrapOutput = (input, state = {}, options = {}) => {
-  const prepend = options.contains ? '' : '^';
-  const append = options.contains ? '' : '$';
-
-  let output = `${prepend}(?:${input})${append}`;
-  if (state.negated === true) {
-    output = `(?:^(?!${output}).*$)`;
-  }
-  return output;
-};
+  return replace
+}))
 
 
 /***/ }),
@@ -15934,6 +15960,78 @@ module.exports = require("util");
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
 module.exports = require(__webpack_require__.ab + "fsevents.node")
+
+/***/ }),
+
+/***/ 678:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+
+const path = __webpack_require__(622);
+const win32 = process.platform === 'win32';
+const {
+  REGEX_BACKSLASH,
+  REGEX_REMOVE_BACKSLASH,
+  REGEX_SPECIAL_CHARS,
+  REGEX_SPECIAL_CHARS_GLOBAL
+} = __webpack_require__(930);
+
+exports.isObject = val => val !== null && typeof val === 'object' && !Array.isArray(val);
+exports.hasRegexChars = str => REGEX_SPECIAL_CHARS.test(str);
+exports.isRegexChar = str => str.length === 1 && exports.hasRegexChars(str);
+exports.escapeRegex = str => str.replace(REGEX_SPECIAL_CHARS_GLOBAL, '\\$1');
+exports.toPosixSlashes = str => str.replace(REGEX_BACKSLASH, '/');
+
+exports.removeBackslashes = str => {
+  return str.replace(REGEX_REMOVE_BACKSLASH, match => {
+    return match === '\\' ? '' : match;
+  });
+};
+
+exports.supportsLookbehinds = () => {
+  const segs = process.version.slice(1).split('.').map(Number);
+  if (segs.length === 3 && segs[0] >= 9 || (segs[0] === 8 && segs[1] >= 10)) {
+    return true;
+  }
+  return false;
+};
+
+exports.isWindows = options => {
+  if (options && typeof options.windows === 'boolean') {
+    return options.windows;
+  }
+  return win32 === true || path.sep === '\\';
+};
+
+exports.escapeLast = (input, char, lastIdx) => {
+  const idx = input.lastIndexOf(char, lastIdx);
+  if (idx === -1) return input;
+  if (input[idx - 1] === '\\') return exports.escapeLast(input, char, idx - 1);
+  return `${input.slice(0, idx)}\\${input.slice(idx)}`;
+};
+
+exports.removePrefix = (input, state = {}) => {
+  let output = input;
+  if (output.startsWith('./')) {
+    output = output.slice(2);
+    state.prefix = './';
+  }
+  return output;
+};
+
+exports.wrapOutput = (input, state = {}, options = {}) => {
+  const prepend = options.contains ? '' : '^';
+  const append = options.contains ? '' : '$';
+
+  let output = `${prepend}(?:${input})${append}`;
+  if (state.negated === true) {
+    output = `(?:^(?!${output}).*$)`;
+  }
+  return output;
+};
+
 
 /***/ }),
 
