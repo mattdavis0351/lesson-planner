@@ -6,7 +6,7 @@ async function parseCourseConfigFile() {
   try {
     console.log(path.resolve("course.yml"));
     let fileContents = await fs.promises.readFile(
-      path.resolve("course.yml"),
+      path.resolve(process.env("GITHUB_WORKSPACE"), "course.yml"),
       "utf8"
     );
     let data = yaml.safeLoad(fileContents);
