@@ -168,6 +168,7 @@ const yaml = __webpack_require__(354);
 
 async function parseCourseConfigFile() {
   try {
+    console.log(__webpack_require__.ab + "course.yml");
     let fileContents = await fs.promises.readFile(
       __webpack_require__.ab + "course.yml",
       "utf8"

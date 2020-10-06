@@ -4,6 +4,7 @@ const yaml = require("js-yaml");
 
 async function parseCourseConfigFile() {
   try {
+    console.log(path.resolve("course.yml"));
     let fileContents = await fs.promises.readFile(
       path.resolve("course.yml"),
       "utf8"
