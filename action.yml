@@ -1,0 +1,11 @@
+name: "Lesson Planner"
+author: mattdavis0351
+description: "Quickly create GitHub lesson plans ready to be served with Docsify"
+inputs:
+  github-token: # id of input
+    description: "Token for API access, use ${{GITHUB_TOKEN}}"
+    required: true
+
+runs:
+  using: "node12"
+  main: "dist/index.js"
