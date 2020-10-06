@@ -205,6 +205,7 @@ async function populateTemplateFiles(
   );
 
   for (let i = 0; i < templateFiles.length; i++) {
+    console.log("using loop and nunjucks to populate templates");
     const objectKey = templateFiles[i].replace(".", "");
     const newContent = nj.render(
       path.resolve(templateDir, `v${templateVersion}`, templateFiles[i]),
@@ -213,6 +214,7 @@ async function populateTemplateFiles(
         objs,
       }
     );
+    console.log("nunjucks complete");
 
     filesToWrite[objectKey] = newContent;
   }
@@ -2140,6 +2142,7 @@ async function run() {
   try {
     // Read course.yml
     // certificationName = string, templateVersion = number, objectives = array
+    console.log("parsing course.yml with pargecourseconfigfile()");
     const {
       certificationName,
       templateVersion,
@@ -2147,8 +2150,10 @@ async function run() {
     } = await parseCourseConfigFile();
 
     // Create new object contianing the objective names as keys and the slugified version as values
+    console.log("creating new empty object for objectives");
     let objs = {};
 
+    console.log("looping through objectives to create new obj object");
     for (let i = 0; i < objectives.length; i++) {
       let slug = slugify(objectives[i]);
 
@@ -2156,12 +2161,17 @@ async function run() {
     }
 
     // Populate templates with data from course.yml and return an object
+    console.log(
+      "trying to populate template files with populateTemplateFiles()"
+    );
     const fileContentsToWrite = await populateTemplateFiles(
       certificationName,
       templateVersion,
       objs,
       __webpack_require__.ab + "templates"
     );
+    console.log("template file object has been returned");
+    console.log(fileContentsToWrite);
     // fileContentsToWrite has these keys
     //     'nojekyll',
     //     'READMEmd',
