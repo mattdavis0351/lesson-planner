@@ -17,6 +17,10 @@ async function populateTemplateFiles(
   for (let i = 0; i < templateFiles.length; i++) {
     console.log("using loop and nunjucks to populate templates");
     const objectKey = templateFiles[i].replace(".", "");
+    console.log("current file nj wants to render " + templateFiles[i]);
+    console.log(
+      `path is currently: ${templateDir}/v${templateVersion}/${templateFiles[i]}`
+    );
     const newContent = nj.render(
       path.resolve(templateDir, `v${templateVersion}`, templateFiles[i]),
       {
