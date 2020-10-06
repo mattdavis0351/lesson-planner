@@ -41,59 +41,73 @@ async function run() {
     //     'lesson-planmd',
     //     'lesson-plannercss'
 
-    const jekyllRes = await octokit.repos.createOrUpdateFileContents({
+    const { data } = await octokit.repos.getContent({
       owner: ctx.repo.owner,
       repo: ctx.repo.repo,
-      path: "docs/.nojekyll",
-      message: "initial template setup",
-      content: Buffer.from(fileContentsToWrite["nojekyll"]).toString("base64"),
       branch: ctx.ref,
     });
 
-    const glossaryRes = await octokit.repos.createOrUpdateFileContents({
-      owner: ctx.repo.owner,
-      repo: ctx.repo.repo,
-      path: "docs/_glossary.md",
-      message: "initial template setup",
-      content: Buffer.from(fileContentsToWrite["_glossarymd"]).toString(
-        "base64"
-      ),
-      branch: ctx.ref,
-    });
-    const readmeRes = await octokit.repos.createOrUpdateFileContents({
-      owner: ctx.repo.owner,
-      repo: ctx.repo.repo,
-      path: "docs/README.md",
-      message: "initial template setup",
-      content: Buffer.from(fileContentsToWrite["READMEmd"]).toString("base64"),
-      branch: ctx.ref,
-    });
+    if (!data.some((dir) => dir.path === "docs")) {
+      const jekyllRes = await octokit.repos.createOrUpdateFileContents({
+        owner: ctx.repo.owner,
+        repo: ctx.repo.repo,
+        path: "docs/.nojekyll",
+        message: "initial template setup",
+        content: Buffer.from(fileContentsToWrite["nojekyll"]).toString(
+          "base64"
+        ),
+        branch: ctx.ref,
+      });
+
+      const glossaryRes = await octokit.repos.createOrUpdateFileContents({
+        owner: ctx.repo.owner,
+        repo: ctx.repo.repo,
+        path: "docs/_glossary.md",
+        message: "initial template setup",
+        content: Buffer.from(fileContentsToWrite["_glossarymd"]).toString(
+          "base64"
+        ),
+        branch: ctx.ref,
+      });
+      const readmeRes = await octokit.repos.createOrUpdateFileContents({
+        owner: ctx.repo.owner,
+        repo: ctx.repo.repo,
+        path: "docs/README.md",
+        message: "initial template setup",
+        content: Buffer.from(fileContentsToWrite["READMEmd"]).toString(
+          "base64"
+        ),
+        branch: ctx.ref,
+      });
+      const indexRes = await octokit.repos.createOrUpdateFileContents({
+        owner: ctx.repo.owner,
+        repo: ctx.repo.repo,
+        path: "docs/index.html",
+        message: "initial template setup",
+        content: Buffer.from(fileContentsToWrite["indexhtml"]).toString(
+          "base64"
+        ),
+        branch: ctx.ref,
+      });
+
+      const cssRes = await octokit.repos.createOrUpdateFileContents({
+        owner: ctx.repo.owner,
+        repo: ctx.repo.repo,
+        path: "docs/lesson-planner.css",
+        message: "initial template setup",
+        content: Buffer.from(fileContentsToWrite["lesson-plannercss"]).toString(
+          "base64"
+        ),
+        branch: ctx.ref,
+      });
+    }
+
     const sidebarRes = await octokit.repos.createOrUpdateFileContents({
       owner: ctx.repo.owner,
       repo: ctx.repo.repo,
       path: "docs/_sidebar.md",
       message: "initial template setup",
       content: Buffer.from(fileContentsToWrite["_sidebarmd"]).toString(
-        "base64"
-      ),
-      branch: ctx.ref,
-    });
-
-    const indexRes = await octokit.repos.createOrUpdateFileContents({
-      owner: ctx.repo.owner,
-      repo: ctx.repo.repo,
-      path: "docs/index.html",
-      message: "initial template setup",
-      content: Buffer.from(fileContentsToWrite["indexhtml"]).toString("base64"),
-      branch: ctx.ref,
-    });
-
-    const cssRes = await octokit.repos.createOrUpdateFileContents({
-      owner: ctx.repo.owner,
-      repo: ctx.repo.repo,
-      path: "docs/lesson-planner.css",
-      message: "initial template setup",
-      content: Buffer.from(fileContentsToWrite["lesson-plannercss"]).toString(
         "base64"
       ),
       branch: ctx.ref,
