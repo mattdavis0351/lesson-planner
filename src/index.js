@@ -6,7 +6,7 @@ const slugify = require("slugify");
 const { parseCourseConfigFile } = require("./lib/parser");
 const { populateTemplateFiles } = require("./lib/templates");
 const templateDir = path.resolve(
-  path.dirname(__dirname),
+  //   path.dirname(__dirname),
   "src",
   "lib",
   "templates"
