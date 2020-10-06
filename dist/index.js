@@ -201,7 +201,7 @@ async function populateTemplateFiles(
   let filesToWrite = {};
 
   const templateFiles = await fs.promises.readdir(
-    __webpack_require__.ab + "lesson-planner/" + templateDir + '/v' + templateVersion
+    templateDir + `v${templateVersion}`
   );
 
   for (let i = 0; i < templateFiles.length; i++) {
