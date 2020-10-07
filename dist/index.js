@@ -204,7 +204,7 @@ async function populateTemplateFiles(
     `${templateDir}/v${templateVersion}`
   );
 
-  nj.configure(__webpack_require__.ab + "lesson-planner/" + templateDir + '/v' + templateVersion);
+  // nj.configure(path.resolve(`${templateDir}/v${templateVersion}`));
   for (let i = 0; i < templateFiles.length; i++) {
     console.log("using loop and nunjucks to populate templates");
     console.log("creating object keys with .replace()");
