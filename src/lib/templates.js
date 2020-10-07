@@ -27,6 +27,11 @@ async function populateTemplateFiles(
     // /v${templateVersion}/${templateFiles[i]}
     console.log(`dir contents is : ${contents}`);
 
+    const file = fs.readFileSync(
+      `${templateDir}/v${templateVersion}/${templateFiles[i]}`
+    );
+    console.log(`file is: ${file}`);
+
     const newContent = nj.render(
       path.resolve(
         path.dirname(__dirname),
