@@ -2143,6 +2143,7 @@ const { populateTemplateFiles } = __webpack_require__(35);
 
 console.log("creating template dir variable");
 const templateDir = __webpack_require__.ab + "templates";
+console.log("templateDir is " + templateDir);
 console.log("getting input variables");
 const GITHUB_TOKEN = core.getInput("github-token");
 const octokit = github.getOctokit(GITHUB_TOKEN);

@@ -13,6 +13,7 @@ const templateDir = path.resolve(
   "lib",
   "templates"
 );
+console.log("templateDir is " + templateDir);
 console.log("getting input variables");
 const GITHUB_TOKEN = core.getInput("github-token");
 const octokit = github.getOctokit(GITHUB_TOKEN);
