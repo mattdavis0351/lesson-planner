@@ -30,7 +30,7 @@ async function populateTemplateFiles(
     console.log(path.dirname(__dirname));
 
     const newContent = nj.render(
-      `./templates/${templateVersion}/${templateFiles[i]}`,
+      `./templates/v${templateVersion}/${templateFiles[i]}`,
       // path.resolve(
       //   path.dirname(__dirname),
       //   templateDir,
