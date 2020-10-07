@@ -31,13 +31,7 @@ async function populateTemplateFiles(
     console.log(path.dirname(__dirname));
 
     const newContent = nj.render(
-      `${templateFiles[i]}`,
-      // path.resolve(
-      //   path.dirname(__dirname),
-      //   templateDir,
-      //   `v${templateVersion}`,
-      //   templateFiles[i]
-      // ),
+      path.resolve(`./${templateDir}/v${templateVersion}/${templateFiles[i]}`),
       {
         certificationName,
         objs,
