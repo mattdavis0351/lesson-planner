@@ -213,7 +213,7 @@ async function populateTemplateFiles(
     console.log(
       `path is currently: ${templateDir}/v${templateVersion}/${templateFiles[i]}`
     );
-    const contents = fs.readdirSync(`${templateDir}`);
+    const contents = fs.readdirSync(`${templateDir}/v${templateVersion}`);
     // /v${templateVersion}/${templateFiles[i]}
     console.log(`dir contents is : ${contents}`);
 
