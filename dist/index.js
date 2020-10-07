@@ -213,6 +213,11 @@ async function populateTemplateFiles(
     console.log(
       `path is currently: ${templateDir}/v${templateVersion}/${templateFiles[i]}`
     );
+    const contents = fs.readdirSync(
+      `${templateDir}/v${templateVersion}/${templateFiles[i]}`
+    );
+    console.log(`dir contents is : ${contents}`);
+
     const newContent = nj.render(
       path.resolve(
         path.dirname(__dirname),
