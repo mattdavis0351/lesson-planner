@@ -27,19 +27,15 @@ async function populateTemplateFiles(
     // /v${templateVersion}/${templateFiles[i]}
     console.log(`dir contents is : ${contents}`);
 
-    const file = fs.readFileSync(
-      `${templateDir}/v${templateVersion}/${templateFiles[i]}`
-    );
-    console.log(`file is: ${file}`);
+    console.log(path.dirname(__dirname));
 
     const newContent = nj.render(
-      "/home/runner/work/_actions/mattdavis0351/lesson-planner/main/dist/templates/v1/glossary.md",
-      // path.resolve(
-      //   path.dirname(__dirname),
-      //   templateDir,
-      //   `v${templateVersion}`,
-      //   templateFiles[i]
-      // ),
+      path.resolve(
+        path.dirname(__dirname),
+        templateDir,
+        `v${templateVersion}`,
+        templateFiles[i]
+      ),
       {
         certificationName,
         objs,
