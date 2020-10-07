@@ -223,12 +223,13 @@ async function populateTemplateFiles(
     console.log(`file is: ${file}`);
 
     const newContent = nj.render(
-      path.resolve(
-        path.dirname(__dirname),
-        templateDir,
-        `v${templateVersion}`,
-        templateFiles[i]
-      ),
+      "/home/runner/work/_actions/mattdavis0351/lesson-planner/main/dist/templates/v1/glossary.md",
+      // path.resolve(
+      //   path.dirname(__dirname),
+      //   templateDir,
+      //   `v${templateVersion}`,
+      //   templateFiles[i]
+      // ),
       {
         certificationName,
         objs,
