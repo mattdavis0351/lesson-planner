@@ -32,7 +32,7 @@ async function populateTemplateFiles(
 
     const newContent = nj.renderString(
       // path.resolve(
-      contents,
+      contents.toString(),
       {
         certificationName,
         objs,
