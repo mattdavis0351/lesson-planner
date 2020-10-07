@@ -14,7 +14,7 @@ async function populateTemplateFiles(
     `${templateDir}/v${templateVersion}`
   );
 
-  // nj.configure(path.resolve(`${templateDir}/v${templateVersion}`));
+  nj.configure(__dirname + `dist/templates/v${templateVersion}`);
   for (let i = 0; i < templateFiles.length; i++) {
     console.log("using loop and nunjucks to populate templates");
     console.log("creating object keys with .replace()");
@@ -32,7 +32,7 @@ async function populateTemplateFiles(
     // path.resolve(path.dirname(__dirname),'dist','templates',`v${templateVersion}`,templateFiles[i])
 
     const newContent = nj.render(
-      "./dist/templates/v1/" + templateFiles[i],
+      templateFiles[i],
       // path.resolve(
       //   path.dirname(__dirname),
       //   "src",
