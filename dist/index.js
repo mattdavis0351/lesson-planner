@@ -188,7 +188,6 @@ module.exports = { parseCourseConfigFile };
 /***/ 35:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
-const path = __webpack_require__(622);
 const fs = __webpack_require__(747);
 const nj = __webpack_require__(603);
 
@@ -206,29 +205,14 @@ async function populateTemplateFiles(
 
   for (let i = 0; i < templateFiles.length; i++) {
     const objectKey = templateFiles[i].replace(".", "");
-    console.log("replace sucessful");
-    console.log("current file nj wants to render " + templateFiles[i]);
-    // console.log(
-    //   `path is currently: ${templateDir}/v${templateVersion}/${templateFiles[i]}`
-    // );
     const contents = fs.readFileSync(
       `${templateDir}/v${templateVersion}/${templateFiles[i]}`
     );
-    // /v${templateVersion}/${templateFiles[i]}
-    console.log(`file contents is : ${contents}`);
 
-    // console.log(path.dirname(__dirname));
-    // path.resolve(path.dirname(__dirname),'dist','templates',`v${templateVersion}`,templateFiles[i])
-
-    const newContent = nj.renderString(
-      // path.resolve(
-      contents.toString(),
-      {
-        certificationName,
-        objs,
-      }
-    );
-    console.log("nunjucks complete");
+    const newContent = nj.renderString(contents.toString(), {
+      certificationName,
+      objs,
+    });
 
     filesToWrite[objectKey] = newContent;
   }
@@ -2185,10 +2169,10 @@ async function run() {
       objs,
       __webpack_require__.ab + "templates"
     );
-    console.log("template file object has been returned");
-    console.log(fileContentsToWrite);
+
+    console.log(`file contents object is:\n${fileContentsToWrite}`);
     // fileContentsToWrite has these keys
-    //     'nojekyll',
+    //     'nojekyll', <--- possibly not this key
     //     'READMEmd',
     //     '_glossarymd',
     //     '_sidebarmd',
@@ -2197,26 +2181,28 @@ async function run() {
     //     'lesson-plannercss'
 
     // Use the GitHub API to get the directories and files in the root of the repo
+    console.log("checking for docs folder in repo");
     const docsFolder = await octokit.repos.getContent({
       owner: ctx.repo.owner,
       repo: ctx.repo.repo,
       branch: ctx.ref,
     });
+    console.log("docs folder api call complete");
 
     // Check for docs foler, if it does NOT exist, create it and populate it with the initial
     // template files needed for Docsify
     if (!docsFolder.data.some((dir) => dir.path === "docs")) {
+      console.log("docs folder does not exist, setting up initial templates");
+      console.log("writing empy .nojekyll file");
       const jekyllRes = await octokit.repos.createOrUpdateFileContents({
         owner: ctx.repo.owner,
         repo: ctx.repo.repo,
         path: "docs/.nojekyll",
         message: "initial template setup",
-        content: Buffer.from(fileContentsToWrite["nojekyll"]).toString(
-          "base64"
-        ),
+        content: Buffer.from("").toString("base64"),
         branch: ctx.ref,
       });
-
+      console.log("writing glossary file");
       const glossaryRes = await octokit.repos.createOrUpdateFileContents({
         owner: ctx.repo.owner,
         repo: ctx.repo.repo,
@@ -2227,7 +2213,7 @@ async function run() {
         ),
         branch: ctx.ref,
       });
-
+      console.log("writing readme file");
       const readmeRes = await octokit.repos.createOrUpdateFileContents({
         owner: ctx.repo.owner,
         repo: ctx.repo.repo,
@@ -2238,6 +2224,7 @@ async function run() {
         ),
         branch: ctx.ref,
       });
+      console.log("writing index file");
       const indexRes = await octokit.repos.createOrUpdateFileContents({
         owner: ctx.repo.owner,
         repo: ctx.repo.repo,
@@ -2248,7 +2235,7 @@ async function run() {
         ),
         branch: ctx.ref,
       });
-
+      console.log("writing css file");
       const cssRes = await octokit.repos.createOrUpdateFileContents({
         owner: ctx.repo.owner,
         repo: ctx.repo.repo,
@@ -2263,6 +2250,7 @@ async function run() {
 
     // Always recreate the sidebar, this will allow easy updates when objectives
     // Are added to thr course.yml
+    console.log("writing or updating sidebar file");
     const sidebarRes = await octokit.repos.createOrUpdateFileContents({
       owner: ctx.repo.owner,
       repo: ctx.repo.repo,
