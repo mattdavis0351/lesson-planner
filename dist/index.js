@@ -215,7 +215,7 @@ async function populateTemplateFiles(
     );
     const newContent = nj.render(
       path.resolve(
-        __dirname,
+        path.dirname(__dirname),
         templateDir,
         `v${templateVersion}`,
         templateFiles[i]
