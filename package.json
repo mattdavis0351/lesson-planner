@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "ncc build src/index.js -o dist"
+    "build": "ncc build src/index.js -o dist && cp -R src/lib/templates dist"
   },
   "repository": {
     "type": "git",

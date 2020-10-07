@@ -46,17 +46,18 @@ async function run() {
     console.log(
       "trying to populate template files with populateTemplateFiles()"
     );
-    const fileContentsToWrite = await populateTemplateFiles(
+    const fileContentsToWrite = populateTemplateFiles(
       certificationName,
       templateVersion,
       objs,
       templateDir
     );
 
-    console.log(`file contents object is:\n${fileContentsToWrite}`);
+    console.log(`file contents object in main func is:`);
+    console.log(fileContentsToWrite);
     // fileContentsToWrite has these keys
-    //     'nojekyll', <--- possibly not this key
-    //     'READMEmd',
+    //     'nojekyll',
+    //     'readmemd',
     //     '_glossarymd',
     //     '_sidebarmd',
     //     'indexhtml',
@@ -82,7 +83,9 @@ async function run() {
         repo: ctx.repo.repo,
         path: "docs/.nojekyll",
         message: "initial template setup",
-        content: Buffer.from("").toString("base64"),
+        content: Buffer.from(fileContentsToWrite["nojekyll"]).toString(
+          "base64"
+        ),
         branch: ctx.ref,
       });
       console.log("writing glossary file");
@@ -102,7 +105,7 @@ async function run() {
         repo: ctx.repo.repo,
         path: "docs/README.md",
         message: "initial template setup",
-        content: Buffer.from(fileContentsToWrite["READMEmd"]).toString(
+        content: Buffer.from(fileContentsToWrite["readmemd"]).toString(
           "base64"
         ),
         branch: ctx.ref,

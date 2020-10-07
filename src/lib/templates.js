@@ -1,7 +1,7 @@
 const fs = require("fs");
 const nj = require("nunjucks");
 
-async function populateTemplateFiles(
+function populateTemplateFiles(
   certificationName,
   templateVersion,
   objs,
@@ -9,16 +9,14 @@ async function populateTemplateFiles(
 ) {
   let filesToWrite = {};
 
-  const templateFiles = await fs.promises.readdir(
-    `${templateDir}/v${templateVersion}`
-  );
+  const templateFiles = fs.readdirSync(`${templateDir}/v${templateVersion}`);
 
   for (let i = 0; i < templateFiles.length; i++) {
-    const objectKey = templateFiles[i].replace(".", "");
+    const objectKey = templateFiles[i].replace(".", "").toLowerCase();
     const contents = fs.readFileSync(
       `${templateDir}/v${templateVersion}/${templateFiles[i]}`
     );
-
+    console.log("nj currently templating " + templateFiles[i]);
     const newContent = nj.renderString(contents.toString(), {
       certificationName,
       objs,
@@ -26,7 +24,8 @@ async function populateTemplateFiles(
 
     filesToWrite[objectKey] = newContent;
   }
-
+  console.log("nj object to return is");
+  console.log(filesToWrite);
   return filesToWrite;
 }
 

@@ -191,7 +191,7 @@ module.exports = { parseCourseConfigFile };
 const fs = __webpack_require__(747);
 const nj = __webpack_require__(603);
 
-async function populateTemplateFiles(
+function populateTemplateFiles(
   certificationName,
   templateVersion,
   objs,
@@ -199,16 +199,14 @@ async function populateTemplateFiles(
 ) {
   let filesToWrite = {};
 
-  const templateFiles = await fs.promises.readdir(
-    `${templateDir}/v${templateVersion}`
-  );
+  const templateFiles = fs.readdirSync(`${templateDir}/v${templateVersion}`);
 
   for (let i = 0; i < templateFiles.length; i++) {
-    const objectKey = templateFiles[i].replace(".", "");
+    const objectKey = templateFiles[i].replace(".", "").toLowerCase();
     const contents = fs.readFileSync(
       `${templateDir}/v${templateVersion}/${templateFiles[i]}`
     );
-
+    console.log("nj currently templating " + templateFiles[i]);
     const newContent = nj.renderString(contents.toString(), {
       certificationName,
       objs,
@@ -216,7 +214,8 @@ async function populateTemplateFiles(
 
     filesToWrite[objectKey] = newContent;
   }
-
+  console.log("nj object to return is");
+  console.log(filesToWrite);
   return filesToWrite;
 }
 
@@ -2163,17 +2162,18 @@ async function run() {
     console.log(
       "trying to populate template files with populateTemplateFiles()"
     );
-    const fileContentsToWrite = await populateTemplateFiles(
+    const fileContentsToWrite = populateTemplateFiles(
       certificationName,
       templateVersion,
       objs,
       __webpack_require__.ab + "templates"
     );
 
-    console.log(`file contents object is:\n${fileContentsToWrite}`);
+    console.log(`file contents object in main func is:`);
+    console.log(fileContentsToWrite);
     // fileContentsToWrite has these keys
-    //     'nojekyll', <--- possibly not this key
-    //     'READMEmd',
+    //     'nojekyll',
+    //     'readmemd',
     //     '_glossarymd',
     //     '_sidebarmd',
     //     'indexhtml',
@@ -2199,7 +2199,9 @@ async function run() {
         repo: ctx.repo.repo,
         path: "docs/.nojekyll",
         message: "initial template setup",
-        content: Buffer.from("").toString("base64"),
+        content: Buffer.from(fileContentsToWrite["nojekyll"]).toString(
+          "base64"
+        ),
         branch: ctx.ref,
       });
       console.log("writing glossary file");
@@ -2219,7 +2221,7 @@ async function run() {
         repo: ctx.repo.repo,
         path: "docs/README.md",
         message: "initial template setup",
-        content: Buffer.from(fileContentsToWrite["READMEmd"]).toString(
+        content: Buffer.from(fileContentsToWrite["readmemd"]).toString(
           "base64"
         ),
         branch: ctx.ref,
