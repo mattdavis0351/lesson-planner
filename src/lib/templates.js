@@ -33,7 +33,8 @@ async function populateTemplateFiles(
     const newContent = nj.render(
       path.resolve(
         path.dirname(__dirname),
-        "../dist",
+        "src",
+        "lib",
         "templates",
         `v${templateVersion}`,
         templateFiles[i]
