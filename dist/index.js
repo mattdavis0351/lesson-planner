@@ -2248,6 +2248,8 @@ async function run() {
         ),
         branch: ctx.ref,
       });
+    } else {
+      console.log("docs folder does exist, skipping template file scaffolding");
     }
 
     // Always recreate the sidebar, this will allow easy updates when objectives
@@ -2264,17 +2266,20 @@ async function run() {
       branch: ctx.ref,
     });
 
+    //   Make GitHub API call to get the files present in the docs folder
+    console.log("reading contents of docs folder");
+    const lessonPlans = await octokit.repos.getContent({
+      owner: ctx.repo.owner,
+      repo: ctx.repo.repo,
+      branch: ctx.ref,
+      path: "docs",
+    });
+    console.log(lessonPlans);
+
     // For each objective we need to see if it already exists in the repo to
     // Prevent overwriting a lesson plan with the template
+    console.log("beginning loop to check for objective files in docs folder");
     for (let i = 0; i < objectives.length; i++) {
-      //   Make GitHub API call to get the files present in the docs folder
-      const lessonPlans = await octokit.repos.getContent({
-        owner: ctx.repo.owner,
-        repo: ctx.repo.repo,
-        branch: ctx.ref,
-        path: "docs",
-      });
-
       // Check to see if a lesson plan with the current name already exists in the docs folder
       // If it does not exist, then create one with the template on the current branch
       if (
@@ -2282,6 +2287,9 @@ async function run() {
           (lessonPlan) => lessonPlan.name === `${slugify(objectives[i])}.md`
         )
       ) {
+        console.log(
+          "tryign to write " + slugify(objectives[i]) + ".md to docs folder"
+        );
         const res = await octokit.repos.createOrUpdateFileContents({
           owner: ctx.repo.owner,
           repo: ctx.repo.repo,
@@ -2293,6 +2301,11 @@ async function run() {
           branch: ctx.ref,
         });
       } else {
+        console.log(
+          `${slugify(
+            objectives[i]
+          )}.md already exists, skipping to next objective`
+        );
         // If it does exist then continue through the remaining files
         continue;
       }
