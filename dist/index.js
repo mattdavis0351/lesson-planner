@@ -197,27 +197,6 @@ function populateTemplateFiles(
   objs,
   templateDir
 ) {
-  // let filesToWrite = {};
-
-  // const templateFiles = fs.readdirSync(`${templateDir}/v${templateVersion}`);
-
-  // for (let i = 0; i < templateFiles.length; i++) {
-  //   const objectKey = templateFiles[i].replace(".", "").toLowerCase();
-  //   const contents = fs.readFileSync(
-  //     `${templateDir}/v${templateVersion}/${templateFiles[i]}`
-  //   );
-  //   console.log("nj currently templating " + templateFiles[i]);
-  //   const newContent = nj.renderString(contents.toString(), {
-  //     certificationName,
-  //     objs,
-  //   });
-
-  //   filesToWrite[objectKey] = newContent;
-  // }
-  // console.log("nj object to return is");
-  // console.log(filesToWrite);
-  // return filesToWrite;
-
   const templateFiles = fs.readdirSync(`${templateDir}/v${templateVersion}`);
   const filesToWrite = templateFiles.map((file) => {
     const contents = fs
@@ -2269,6 +2248,9 @@ async function run() {
       console.log("docs folder does exist, skipping template file scaffolding");
     }
 
+    // Read docs folder to see if sidebar exists
+    // if sidebar, then read it for the sha
+    // if not sidebar then just create a new one with no sha
     // Always recreate the sidebar, this will allow easy updates when objectives
     // Are added to thr course.yml
     console.log("Getting the sidebar");
@@ -2278,6 +2260,8 @@ async function run() {
       ref: ctx.ref,
       path: "docs/_sidebar.md",
     });
+
+    console.log(sidebar.data);
     console.log("writing or updating sidebar file");
     const sidebarRes = await octokit.repos.createOrUpdateFileContents({
       owner: ctx.repo.owner,
