@@ -2186,7 +2186,7 @@ async function run() {
     const docsFolder = await octokit.repos.getContent({
       owner: ctx.repo.owner,
       repo: ctx.repo.repo,
-      branch: ctx.ref,
+      ref: ctx.ref,
     });
     console.log("docs folder api call complete");
     console.log(docsFolder.data);
@@ -2273,7 +2273,7 @@ async function run() {
     const lessonPlans = await octokit.repos.getContent({
       owner: ctx.repo.owner,
       repo: ctx.repo.repo,
-      branch: ctx.ref,
+      ref: ctx.ref,
       path: "docs",
     });
     console.log(lessonPlans);
