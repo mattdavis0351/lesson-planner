@@ -221,7 +221,7 @@ function populateTemplateFiles(
   const templateFiles = fs.readdirSync(`${templateDir}/v${templateVersion}`);
   const filesToWrite = templateFiles.map((file) => {
     const contents = fs
-      .readFileSync("./src/lib/templates/v1/" + file)
+      .readFileSync(`${templateDir}/v${templateVersion}/${file}`)
       .toString();
     const objKey = file.replace(".", "").toLowerCase();
     const newContents = nj.renderString(contents, {
