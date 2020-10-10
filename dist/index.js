@@ -2258,7 +2258,7 @@ async function run() {
       path: "docs",
     });
     // if sidebar, then read it for the sha
-    if (sidebarCheck.data.some((file) => file.path === "_sidebar.md")) {
+    if (sidebarCheck.data.some((file) => file.name === "_sidebar.md")) {
       console.log("Getting the sidebar");
       const sidebar = await octokit.repos.getContent({
         owner: ctx.repo.owner,
