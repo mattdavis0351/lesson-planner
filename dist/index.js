@@ -2143,14 +2143,21 @@ async function run() {
 
     // Create new object contianing the objective names as keys and the slugified version as values
     console.log("creating new empty object for objectives");
-    let objs = {};
+    // let objs = {};
 
-    console.log("looping through objectives to create new obj object");
-    for (let i = 0; i < objectives.length; i++) {
-      let slug = slugify(objectives[i]);
+    // console.log("looping through objectives to create new obj object");
+    // for (let i = 0; i < objectives.length; i++) {
+    //   let slug = slugify(objectives[i]);
 
-      objs[objectives[i]] = slug;
-    }
+    //   objs[objectives[i]] = slug;
+    // }
+
+    const objs = Object.assign(
+      {},
+      ...objectives.map((obj) => {
+        return { [obj]: slugify(obj) };
+      })
+    );
 
     // Populate templates with data from course.yml and return an object
     console.log(
