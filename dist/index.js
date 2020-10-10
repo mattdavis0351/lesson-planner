@@ -2248,34 +2248,51 @@ async function run() {
       console.log("docs folder does exist, skipping template file scaffolding");
     }
 
-    // Read docs folder to see if sidebar exists
-    // if sidebar, then read it for the sha
-    // if not sidebar then just create a new one with no sha
     // Always recreate the sidebar, this will allow easy updates when objectives
     // Are added to thr course.yml
-    console.log("Getting the sidebar");
-    const sidebar = await octokit.repos.getContent({
+    // Read docs folder to see if sidebar exists
+    const sidebarCheck = await octokit.repos.getContent({
       owner: ctx.repo.owner,
       repo: ctx.repo.repo,
       ref: ctx.ref,
-      path: "docs/_sidebar.md",
+      path: "docs",
     });
-    if (sidebar.status !== 200) {
-      console.log(sidebar.data);
-    }
+    // if sidebar, then read it for the sha
+    if (sidebarCheck.data.some((file) => file.path === "_sidebar.md")) {
+      console.log("Getting the sidebar");
+      const sidebar = await octokit.repos.getContent({
+        owner: ctx.repo.owner,
+        repo: ctx.repo.repo,
+        ref: ctx.ref,
+        path: "docs/_sidebar.md",
+      });
 
-    console.log("writing or updating sidebar file");
-    const sidebarRes = await octokit.repos.createOrUpdateFileContents({
-      owner: ctx.repo.owner,
-      repo: ctx.repo.repo,
-      path: "docs/_sidebar.md",
-      message: "initial template setup",
-      content: Buffer.from(fileContentsToWrite["_sidebarmd"]).toString(
-        "base64"
-      ),
-      branch: ctx.ref,
-      sha: sidebar.data.sha,
-    });
+      console.log("updating existing sidebar file");
+      const sidebarRes = await octokit.repos.createOrUpdateFileContents({
+        owner: ctx.repo.owner,
+        repo: ctx.repo.repo,
+        path: "docs/_sidebar.md",
+        message: "initial template setup",
+        content: Buffer.from(fileContentsToWrite["_sidebarmd"]).toString(
+          "base64"
+        ),
+        branch: ctx.ref,
+        sha: sidebar.data.sha,
+      });
+    } else {
+      // if not sidebar then just create a new one with no sha
+      console.log("writing a new sidebar file");
+      const sidebarRes = await octokit.repos.createOrUpdateFileContents({
+        owner: ctx.repo.owner,
+        repo: ctx.repo.repo,
+        path: "docs/_sidebar.md",
+        message: "initial template setup",
+        content: Buffer.from(fileContentsToWrite["_sidebarmd"]).toString(
+          "base64"
+        ),
+        branch: ctx.ref,
+      });
+    }
 
     //   Make GitHub API call to get the files present in the docs folder
     console.log("reading contents of docs folder");
