@@ -150,8 +150,10 @@ async function run() {
       ref: ctx.ref,
       path: "docs/_sidebar.md",
     });
+    if (sidebar.status !== 200) {
+      console.log(sidebar.data);
+    }
 
-    console.log(sidebar.data);
     console.log("writing or updating sidebar file");
     const sidebarRes = await octokit.repos.createOrUpdateFileContents({
       owner: ctx.repo.owner,
