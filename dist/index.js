@@ -2181,6 +2181,7 @@ async function run() {
     //     'lesson-plannercss'
 
     // Use the GitHub API to get the directories and files in the root of the repo
+    console.log(`current branch is ${ctx.ref}`);
     console.log("checking for docs folder in repo");
     const docsFolder = await octokit.repos.getContent({
       owner: ctx.repo.owner,
