@@ -72,6 +72,7 @@ async function run() {
       branch: ctx.ref,
     });
     console.log("docs folder api call complete");
+    console.log(docsFolder.data);
 
     // Check for docs foler, if it does NOT exist, create it and populate it with the initial
     // template files needed for Docsify
