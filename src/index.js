@@ -140,6 +140,13 @@ async function run() {
 
     // Always recreate the sidebar, this will allow easy updates when objectives
     // Are added to thr course.yml
+    console.log("Getting the sidebar");
+    const sidebar = await octokit.repos.getContent({
+      owner: ctx.repo.owner,
+      repo: ctx.repo.repo,
+      ref: ctx.ref,
+      path: "docs/_sidebar.md",
+    });
     console.log("writing or updating sidebar file");
     const sidebarRes = await octokit.repos.createOrUpdateFileContents({
       owner: ctx.repo.owner,
@@ -150,6 +157,7 @@ async function run() {
         "base64"
       ),
       branch: ctx.ref,
+      sha: sidebar.data.sha,
     });
 
     //   Make GitHub API call to get the files present in the docs folder
