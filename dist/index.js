@@ -2143,14 +2143,6 @@ async function run() {
 
     // Create new object contianing the objective names as keys and the slugified version as values
     console.log("creating new empty object for objectives");
-    // let objs = {};
-
-    // console.log("looping through objectives to create new obj object");
-    // for (let i = 0; i < objectives.length; i++) {
-    //   let slug = slugify(objectives[i]);
-
-    //   objs[objectives[i]] = slug;
-    // }
 
     const objs = Object.assign(
       {},
@@ -2258,14 +2250,14 @@ async function run() {
     // Always recreate the sidebar, this will allow easy updates when objectives
     // Are added to thr course.yml
     // Read docs folder to see if sidebar exists
-    const sidebarCheck = await octokit.repos.getContent({
+    const docsContent = await octokit.repos.getContent({
       owner: ctx.repo.owner,
       repo: ctx.repo.repo,
       ref: ctx.ref,
       path: "docs",
     });
     // if sidebar, then read it for the sha
-    if (sidebarCheck.data.some((file) => file.name === "_sidebar.md")) {
+    if (docsContent.data.some((file) => file.name === "_sidebar.md")) {
       console.log("Getting the sidebar");
       const sidebar = await octokit.repos.getContent({
         owner: ctx.repo.owner,
@@ -2302,33 +2294,25 @@ async function run() {
     }
 
     //   Make GitHub API call to get the files present in the docs folder
-    console.log("reading contents of docs folder");
-    const lessonPlans = await octokit.repos.getContent({
-      owner: ctx.repo.owner,
-      repo: ctx.repo.repo,
-      ref: ctx.ref,
-      path: "docs",
-    });
-    console.log(lessonPlans);
+    // console.log("reading contents of docs folder");
+    // const lessonPlans = await octokit.repos.getContent({
+    //   owner: ctx.repo.owner,
+    //   repo: ctx.repo.repo,
+    //   ref: ctx.ref,
+    //   path: "docs",
+    // });
+    // console.log(lessonPlans);
 
     // For each objective we need to see if it already exists in the repo to
     // Prevent overwriting a lesson plan with the template
-    console.log("beginning loop to check for objective files in docs folder");
-    for (let i = 0; i < objectives.length; i++) {
-      // Check to see if a lesson plan with the current name already exists in the docs folder
-      // If it does not exist, then create one with the template on the current branch
-      if (
-        !lessonPlans.data.some(
-          (lessonPlan) => lessonPlan.name === `${slugify(objectives[i])}.md`
-        )
-      ) {
-        console.log(
-          "tryign to write " + slugify(objectives[i]) + ".md to docs folder"
-        );
+    console.log("trying forEach loop for lesson plan files");
+    objectives.forEach(async (lp) => {
+      if (docsContent.data.some((lp) => lp.name === `${slugify(lp)}.md`)) {
+        console.log("trying to write " + slugify(lp) + ".md to docs folder");
         const res = await octokit.repos.createOrUpdateFileContents({
           owner: ctx.repo.owner,
           repo: ctx.repo.repo,
-          path: `docs/${slugify(objectives[i])}.md`,
+          path: `docs/${slugify(lp)}.md`,
           message: "initial template setup",
           content: Buffer.from(fileContentsToWrite["lesson-planmd"]).toString(
             "base64"
@@ -2337,14 +2321,44 @@ async function run() {
         });
       } else {
         console.log(
-          `${slugify(
-            objectives[i]
-          )}.md already exists, skipping to next objective`
+          `${slugify(lp)}.md already exists, skipping to next objective`
         );
         // If it does exist then continue through the remaining files
-        continue;
+        // continue;
       }
-    }
+    });
+    // console.log("beginning loop to check for objective files in docs folder");
+    // for (let i = 0; i < objectives.length; i++) {
+    //   // Check to see if a lesson plan with the current name already exists in the docs folder
+    //   // If it does not exist, then create one with the template on the current branch
+    //   if (
+    //     !lessonPlans.data.some(
+    //       (lessonPlan) => lessonPlan.name === `${slugify(objectives[i])}.md`
+    //     )
+    //   ) {
+    //     console.log(
+    //       "tryign to write " + slugify(objectives[i]) + ".md to docs folder"
+    //     );
+    //     const res = await octokit.repos.createOrUpdateFileContents({
+    //       owner: ctx.repo.owner,
+    //       repo: ctx.repo.repo,
+    //       path: `docs/${slugify(objectives[i])}.md`,
+    //       message: "initial template setup",
+    //       content: Buffer.from(fileContentsToWrite["lesson-planmd"]).toString(
+    //         "base64"
+    //       ),
+    //       branch: ctx.ref,
+    //     });
+    //   } else {
+    //     console.log(
+    //       `${slugify(
+    //         objectives[i]
+    //       )}.md already exists, skipping to next objective`
+    //     );
+    //     // If it does exist then continue through the remaining files
+    //     continue;
+    //   }
+    // }
   } catch (error) {
     core.setFailed(error);
   }
