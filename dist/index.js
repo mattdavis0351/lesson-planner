@@ -2275,10 +2275,10 @@ async function run() {
     // For each objective we need to see if it already exists in the repo to
     // Prevent overwriting a lesson plan with the template
     console.log("Creating files to serve");
-    for (let i = 0; i < objectives.length; i++) {
+    for (let i = 0; i < pageTitles.length; i++) {
       // Check to see if a lesson plan with the current name already exists in the docs folder
       // If it does not exist, then create one with the template on the current branch
-      const filenameSlug = slugify(objectives[i]);
+      const filenameSlug = slugify(pageTitles[i]);
       if (
         !docsContent.data.some(
           (lessonPlan) => lessonPlan.name === `${filenameSlug}.md`
