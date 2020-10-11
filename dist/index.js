@@ -2307,6 +2307,7 @@ async function run() {
     // Prevent overwriting a lesson plan with the template
     console.log("trying forEach loop for lesson plan files");
     objectives.forEach(async (lp) => {
+      console.log(lp);
       if (docsContent.data.some((lp) => lp.name === `${slugify(lp)}.md`)) {
         console.log("trying to write " + slugify(lp) + ".md to docs folder");
         const res = await octokit.repos.createOrUpdateFileContents({
