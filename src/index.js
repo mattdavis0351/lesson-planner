@@ -192,9 +192,7 @@ async function run() {
     // Prevent overwriting a lesson plan with the template
     console.log("trying forEach loop for lesson plan files");
     objectives.forEach(async (lp) => {
-      const lpSlug = slugify(lp);
-      console.log(lpSlug);
-      if (docsContent.data.some((file) => file.name === `${slugify(lp)}.md`)) {
+      if (!docsContent.data.some((file) => file.name === `${slugify(lp)}.md`)) {
         console.log(
           "trying to write " + `${slugify(lp)}` + ".md to docs folder"
         );
@@ -208,13 +206,14 @@ async function run() {
           ),
           branch: ctx.ref,
         });
-      } else {
-        console.log(
-          `${slugify(lp)}.md already exists, skipping to next objective`
-        );
-        // If it does exist then continue through the remaining files
-        // continue;
       }
+      // } else {
+      //   console.log(
+      //     `${slugify(lp)}.md already exists, skipping to next objective`
+      //   );
+      //   // If it does exist then continue through the remaining files
+      //   continue;
+      // }
     });
     // console.log("beginning loop to check for objective files in docs folder");
     // for (let i = 0; i < objectives.length; i++) {
