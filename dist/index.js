@@ -2163,7 +2163,7 @@ async function run() {
     );
 
     console.log(`file contents object in main func is:`);
-    console.log(fileContentsToWrite);
+    // console.log(fileContentsToWrite);
     // fileContentsToWrite has these keys
     //     'nojekyll',
     //     'readmemd',
@@ -2174,7 +2174,7 @@ async function run() {
     //     'lesson-plannercss'
 
     // Use the GitHub API to get the directories and files in the root of the repo
-    console.log(`current branch is ${ctx.ref}`);
+    // console.log(`current branch is ${ctx.ref}`);
     console.log("checking for docs folder in repo");
     const docsFolder = await octokit.repos.getContent({
       owner: ctx.repo.owner,
@@ -2182,7 +2182,7 @@ async function run() {
       ref: ctx.ref,
     });
     console.log("docs folder api call complete");
-    console.log(docsFolder.data);
+    // console.log(docsFolder.data);
 
     // Check for docs foler, if it does NOT exist, create it and populate it with the initial
     // template files needed for Docsify
@@ -2295,14 +2295,6 @@ async function run() {
 
     //   Make GitHub API call to get the files present in the docs folder
     // console.log("reading contents of docs folder");
-    // const lessonPlans = await octokit.repos.getContent({
-    //   owner: ctx.repo.owner,
-    //   repo: ctx.repo.repo,
-    //   ref: ctx.ref,
-    //   path: "docs",
-    // });
-    // console.log(lessonPlans);
-
     // For each objective we need to see if it already exists in the repo to
     // Prevent overwriting a lesson plan with the template
     console.log("trying forEach loop for lesson plan files");
@@ -2321,14 +2313,11 @@ async function run() {
           ),
           branch: ctx.ref,
         });
+      } else {
+        console.log(
+          `${slugify(lp)}.md already exists, skipping to next objective`
+        );
       }
-      // } else {
-      //   console.log(
-      //     `${slugify(lp)}.md already exists, skipping to next objective`
-      //   );
-      //   // If it does exist then continue through the remaining files
-      //   continue;
-      // }
     });
     // console.log("beginning loop to check for objective files in docs folder");
     // for (let i = 0; i < objectives.length; i++) {
